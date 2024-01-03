@@ -1,0 +1,113 @@
+---
+title: "Video_Games"
+author: "George Nelson"
+date: "2023-12-29"
+output: html_document
+---
+
+The dataset I'm using comes from: https://www.kaggle.com/datasets/rush4ratio/video-game-sales-with-ratings
+with acknowledgements tohttps://github.com/wtamu-cisresearch/scraper
+
+
+I'm looking to see what the most popular games are in the 2010-2015 by Global_Sales vs Critic_Ratings.
+
+At the very end of this Markdown I'll have a TLDR section that sums up all of my functions into one nice, neat little block of code.
+
+First I'm going to get rid of anything with a NULL or NA value.
+
+```{r}
+edit1 <- Video_Games
+edit2 <- na.omit(edit1)
+```
+
+A little roundabout, but I'm getting over the holidays and getting back into things and Googling how to do stuff in R.
+
+Now let's filter out all the games prior to 2010.
+
+```{r}
+edit3 <- subset(edit2, Year_of_Release >= 2010)
+```
+
+Neat. We're narrowing it down. Let's also drop any games where the User_count is low. We'll drop anything under 100 users.
+
+```{r}
+edit4 <- subset(edit3, User_Count >= 100)
+```
+
+Quick recap, I've trimmed the original 16,928 rows down to 975 rows. 
+
+Now it's time to drop a column because I do not care about the index number at all. I could do it by name but instead I'll do it by column number
+
+```{r}
+edit5 <- edit4[, -1]
+```
+
+The index is now gone forever. ...unless I go back to the original table.
+
+Anyway, let's focus on our main goal.
+
+We want the top rated games from 2010 to 2015 when this data set was completed. While we have Critic_Scores and Critic_Counts I'd rather focus on User_Score instead. 
+
+It's time to drop more columns! Let's do it by name this time.
+
+```{r}
+edit6 <- edit5[, !names(edit5) %in% c("Critic_Score", "Critic_Count")]
+```
+
+Now that we're down to only User_Scores, let's drop every game that is rated below an 8.0 on what I assume is a 10 point scale.
+
+On a side note, the Critic_Score was on a 100 point scale. They just have to be a little extra.
+
+```{r}
+edit7 <- subset(edit6, User_Score >= 8.0)
+```
+
+We are now down to the top user rated games. There are 274 of them. All of them have at least 100 users that reviewed the game.
+
+I'm pretty confident in this data set now, but let's go ahead and see what further trimming does.
+
+```{r}
+edit8 <- subset(edit7, User_Score >= 9.0)
+```
+
+And that little edit has knocked us down to 14 rows. I think I'm going to need more data than that to work with. Let's jump back.
+
+```{r}
+edit8 <- subset(edit7, User_Score >= 8.5)
+```
+
+At 101 rows I think we're at a solid place to stop.
+
+When I set up most of the functions together it looks like this:
+
+```{r}
+final <- Video_Games[, !names(Video_Games) %in% c("index", "Critic_Score", "Critic_Count")]
+final2 <- subset(final, Year_of_Release >= 2010 & User_Count >= 100 & User_Score >= 8.5)
+```
+
+But can you see what I forgot?
+
+I didn't remove the Null/NA values! And this gives me 104 rows because 3 games didn't have a rating marked down.
+
+And one of those games is FromSoftware's Dark Souls III, so I'm keeping this as the final data set instead. Well, final2, but you get it.
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
